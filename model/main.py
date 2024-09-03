@@ -12,6 +12,7 @@ from langchain.chains import LLMChain, StuffDocumentsChain
 from langchain_community.document_loaders import CSVLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.schema import Document
+from utils.find_sim import categorize_response
 
 # 환경 변수 로드
 load_dotenv()
@@ -89,15 +90,8 @@ def classify_product_category(question: str) -> str:
 
     카테고리:
     """
-    response = llm.predict(classification_prompt)
-    if '냉장고' in response:
-        return 'refrigerator_collection'
-    elif '에어컨' in response:
-        return 'air_conditioner_collection'
-    elif 'TV' in response:
-        return 'television_collection'
-    else:
-        return 'unknown'
+    response = llm.invoke(classification_prompt)
+    return categorize_response(response, embeddings)
 
 # 사용자 대화 내용 저장 함수
 def save_conversation(user_id: str, conversation: List[Dict]):
@@ -148,7 +142,7 @@ async def ask_question(query: Query):
         else:
             raise HTTPException(status_code=400, detail="질문의 제품 카테고리를 식별할 수 없습니다.")
 
-        docs = vectorstore.similarity_search(query.question, k=3)
+        docs = vectorstore.similarity_search(query.question, k=5)
         
         result = stuff_chain.run(input_documents=docs, question=query.question)
         
