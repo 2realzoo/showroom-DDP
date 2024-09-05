@@ -1,13 +1,14 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from model.llm_model import Llm_Model
-from pydantic import BaseModel
-from langchain.callbacks import get_openai_callback
-from utils.handle_data import save_conversation
+import json
+import os
 
 import uvicorn
-import os
-import json
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from langchain.callbacks import get_openai_callback
+from pydantic import BaseModel
+
+from model.llm_model import Llm_Model
+from utils.handle_data import save_conversation
 
 app = FastAPI()
 
@@ -41,11 +42,11 @@ async def ask_question(query: Query):
         
         with get_openai_callback() as cb:
             result = model.chain.run(input_documents=docs, question=query.question)
-            print(f"Total Tokens: {cb.total_tokens}")
-            print(f"Prompt Tokens: {cb.prompt_tokens}")
-            print(f"Completion Tokens: {cb.completion_tokens}")
-            print(f"Total Cost (USD): ${cb.total_cost}")
-            print(result)
+            # print(f"Total Tokens: {cb.total_tokens}")
+            # print(f"Prompt Tokens: {cb.prompt_tokens}")
+            # print(f"Completion Tokens: {cb.completion_tokens}")
+            # print(f"Total Cost (USD): ${cb.total_cost}")
+            # print(result)
         limited_answer = model.limit_tokens(result)
         
         conversation = [

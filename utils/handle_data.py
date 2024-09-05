@@ -1,8 +1,10 @@
-from langchain_community.document_loaders import CSVLoader
-from datetime import datetime
 import json
-from typing import List, Dict
 import os
+from datetime import datetime
+from typing import Dict, List
+
+from langchain_community.document_loaders import CSVLoader
+
 
 # CSV 파일 로드 및 문서 생성
 def load_documents(file_name):
