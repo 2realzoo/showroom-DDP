@@ -12,7 +12,6 @@ from utils.handle_data import save_conversation
 
 app = FastAPI()
 
-# TODO:회원 별 instance 생성
 model = Llm_Model(model_name='gpt')
 
 class Query(BaseModel):
@@ -24,44 +23,16 @@ class Query(BaseModel):
 @app.post("/ask")
 async def ask_question(query: Query):
     try:
-        category = model.classify_product_category(query.question)
-        
-        if category == 'refrigerator_collection':
-            vectorStore = model.refrigerator_vectorStore
-        elif category == 'air_conditioner_collection':
-            vectorStore = model.air_conditioner_vectorStore
-        elif category == 'television_collection':
-            vectorStore = model.tv_vectorStore
-        else:
-            return JSONResponse(
-                status_code=400,
-                content={"answer": "질문의 제품 카테고리를 식별할 수 없습니다."}
-            )
-
-        docs = vectorStore.similarity_search(query.question, k=5)
-        
         with get_openai_callback() as cb:
-            result = model.chain.run(input_documents=docs, question=query.question)
-            # print(f"Total Tokens: {cb.total_tokens}")
-            # print(f"Prompt Tokens: {cb.prompt_tokens}")
-            # print(f"Completion Tokens: {cb.completion_tokens}")
-            # print(f"Total Cost (USD): ${cb.total_cost}")
-            # print(result)
-        limited_answer = model.limit_tokens(result)
+            result = model.process_question(query.user_id, query.question, query.area_size, query.housemate_num)
         
         conversation = [
             {"type": "human", "content": query.question},
-            {"type": "ai", "content": limited_answer}
+            {"type": "ai", "content": result['answer']}
         ]
         save_conversation(query.user_id, conversation)
-        model.memory.chat_memory.add_user_message(query.question)
-        model.memory.chat_memory.add_ai_message(limited_answer)
         
-        return JSONResponse(
-            content={
-                "answer": limited_answer
-            }
-        )
+        return JSONResponse(content=result)
     except Exception as e:
         return JSONResponse(
             status_code=500,
@@ -89,7 +60,6 @@ async def summarize(user_id: str):
         content={"summary": summary}
     )
 
-# 메인 실행 부분
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8282)
