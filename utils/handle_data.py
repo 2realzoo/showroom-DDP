@@ -34,3 +34,7 @@ def save_conversation(user_id: str, conversation: List[Dict]):
     
     with open(filename, "w", encoding='utf-8-sig') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+        
+async def load_conversation(filename):
+    with open(filename, "r", encoding='utf-8-sig') as f:
+        return json.load(f)
